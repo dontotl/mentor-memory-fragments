@@ -19,28 +19,8 @@ const repositoryRoot = path.resolve(appRoot, "..");
 const templatePath = path.join(appRoot, "guide", "project.template.html");
 const artifacts = [
   {
-    source: path.join(
-      repositoryRoot,
-      "docs",
-      "superpowers",
-      "plans",
-      "2026-09-14-memory-pwa.md",
-    ),
-    output: path.join(appRoot, "public", "project-plan.md"),
-  },
-  {
-    source: path.join(repositoryRoot, "docs", "verification.md"),
-    output: path.join(appRoot, "public", "project-verification.md"),
-  },
-  {
-    source: path.join(
-      repositoryRoot,
-      "docs",
-      "superpowers",
-      "specs",
-      "2026-09-15-project-landing-enhancement-design.md",
-    ),
-    output: path.join(appRoot, "public", "project-enhancement-design.md"),
+    source: path.join(repositoryRoot, "docs", "PRD.md"),
+    output: path.join(appRoot, "public", "project-prd.md"),
   },
 ];
 const htmlOutputPath = path.join(appRoot, "public", "project.html");

@@ -581,7 +581,7 @@
           <button id="menu-toggle" class="menu-toggle" aria-expanded="false" aria-controls="nav-links" hidden>메뉴</button>
           <nav id="nav-links" aria-label="소개 메뉴">
             <a href="#journey">사용자 여정</a><a href="#architecture">아키텍처</a>
-            <a href="#decisions">기술 고려사항</a><a href="#plan">계획서</a><a href="#demo">데모 실행</a>
+            <a href="#decisions">기술 고려사항</a><a href="#plan">PRD</a><a href="#demo">데모 실행</a>
           </nav>
           <button class="theme" id="theme" aria-label="어두운 테마로 전환" hidden>◐</button>
         </div>
@@ -695,187 +695,189 @@
         </div>
         <div class="note"><strong>글로 답하면 녹음과 전사를 건너뜁니다.</strong> 같은 확인·턴 저장 단계로 합류합니다. 서버는 턴을 먼저 저장한 뒤 질문을 생성하며, 모델을 기다리는 동안 저장 트랜잭션을 열어 두지 않습니다.</div>
         <p class="small">재시도는 같은 requestId로 중복 저장을 막고, 취소 뒤 늦게 도착한 응답은 generation 값으로 무시합니다. <a href="#decisions">취소·낭독의 한계 읽기</a></p>
-      </section><section id="decisions" class="block"><h2>이렇게 구현한 이유</h2><p class="section-intro">현재 선택의 이유와 수용한 한계를 함께 살펴보세요.</p><div class="decision-group"><h3>사용 경험</h3><p>사용자가 답변을 확정하는 순간과 충분히 기다릴 시간을 구분합니다.</p><details><summary>웹/모바일</summary><dl class="decision-detail"><dt>문제</dt><dd>여러 기기에서 같은 여정을 제공해야 합니다.</dd><dt>현재 선택</dt><dd>Next.js PWA와 Konsta iOS로 웹 코드와 모바일 탐색을 공유</dd><dt>이유</dt><dd>웹 코드를 공유하면서 익숙한 모바일 탐색을 제공하기 위해서입니다.</dd><dt>한계</dt><dd>React Native 바이너리가 아님. 실제 iPhone 권한·설치 확인 필요</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-plan.md">구현 계획</a></dd></dl></details><details><summary>기다림과 확인</summary><dl class="decision-detail"><dt>문제</dt><dd>말 사이의 쉼을 답변 완료로 오인하지 않아야 합니다.</dd><dt>현재 선택</dt><dd>묵음 3/5/7초, 생각하기, 전사 검토 후 별도 전송</dd><dt>이유</dt><dd>생각할 시간과 글을 바로잡을 기회를 주기 위해서입니다.</dd><dt>한계</dt><dd>녹음 종료와 사용자의 답변 확정은 다른 상태</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-plan.md">구현 계획</a></dd></dl></details><details><summary>긴 낭독</summary><dl class="decision-detail"><dt>문제</dt><dd>긴 글이 한 번의 요청 한도를 넘을 수 있습니다.</dd><dt>현재 선택</dt><dd>로컬 TTS 500자 한도에 맞춰 450자 이하 순차 호출</dd><dt>이유</dt><dd>긴 회고록도 요청 한도 안에서 낭독하기 위해서입니다.</dd><dt>한계</dt><dd>첫 응답과 문장 사이 대기가 존재. 전체 WAV 전달이며 토큰 스트리밍 아님</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details><details><summary>PWA 캐시</summary><dl class="decision-detail"><dt>문제</dt><dd>개인 기록이 브라우저 캐시에 남지 않아야 합니다.</dd><dt>현재 선택</dt><dd>공개 오프라인 안내만 캐시, 개인 API·사진은 캐시하지 않음</dd><dt>이유</dt><dd>민감한 콘텐츠의 캐시 보관을 줄이기 위해서입니다.</dd><dt>한계</dt><dd>인터넷/서버 없이 전체 인터뷰가 되는 오프라인 앱이 아님</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details></div><div class="decision-group"><h3>실행 환경</h3><p>음성 기능을 나눠 선택하고 CPU 실행의 대기 시간을 드러냅니다.</p><details><summary>음성 구성</summary><dl class="decision-detail"><dt>문제</dt><dd>전사와 낭독의 실행 환경을 따로 선택해야 합니다.</dd><dt>현재 선택</dt><dd>STT와 TTS를 분리해 각각 로컬/API 선택</dd><dt>이유</dt><dd>기능별 공급자와 실행 제약을 관리하기 위해서입니다.</dd><dt>한계</dt><dd>음성-to-음성 단일 멀티모달 모델이 아니며 실시간 부분 전사 미구현</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-plan.md">구현 계획</a></dd></dl></details><details><summary>CPU 실행</summary><dl class="decision-detail"><dt>문제</dt><dd>로컬 장비의 자원이 제한됩니다.</dd><dt>현재 선택</dt><dd>Whisper small int8, Qwen3-TTS 0.6B, 동시 음성 추론 1개</dd><dt>이유</dt><dd>CPU에서 실행 가능하도록 모델 크기와 동시 작업을 제한하기 위해서입니다.</dd><dt>한계</dt><dd>모델 파라미터가 작아도 실시간 속도를 보장하지 않음. RAM·디스크·swap 고려</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details><details><summary>장애 대응</summary><dl class="decision-detail"><dt>문제</dt><dd>연결 실패나 잘못된 출력이 대화를 막지 않아야 합니다.</dd><dt>현재 선택</dt><dd>시간 제한과 최종 출력 검증, 실패 시 명시적 안내 모드</dd><dt>이유</dt><dd>기다림에 끝을 두고 실패를 숨기지 않기 위해서입니다.</dd><dt>한계</dt><dd>연결됨/모델 ready는 품질·속도·모든 요청의 성공 보증이 아님</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details></div><div class="decision-group"><h3>기록의 무결성과 보호</h3><p>확인한 원문과 설정을 보존하고 재시도가 기록을 중복시키지 않게 합니다.</p><details><summary>재시도·취소</summary><dl class="decision-detail"><dt>문제</dt><dd>재전송과 늦은 응답이 기록을 중복시킬 수 있습니다.</dd><dt>현재 선택</dt><dd>동일 답변의 requestId 유지, generation으로 늦은 응답 무시</dd><dt>이유</dt><dd>한 답변의 정체성과 현재 화면의 요청을 구분하기 위해서입니다.</dd><dt>한계</dt><dd>재생 중단이 서버 CPU 추론의 선점 종료를 뜻하지 않음</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details><details><summary>저장소</summary><dl class="decision-detail"><dt>문제</dt><dd>모델 대기가 기록 저장을 막지 않아야 합니다.</dd><dt>현재 선택</dt><dd>SQLite WAL과 로컬 파일, 짧은 저장 트랜잭션</dd><dt>이유</dt><dd>한 서버에서 기록을 지속 보관하며 DB 잠금 시간을 줄이기 위해서입니다.</dd><dt>한계</dt><dd>다중 서버 확장·분산 공유 스토리지·고가용성을 구현한 구성 아님</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-plan.md">구현 계획</a></dd></dl></details><details><summary>사실 보존</summary><dl class="decision-detail"><dt>문제</dt><dd>모델이 말하지 않은 사실을 채워 넣지 않아야 합니다.</dd><dt>현재 선택</dt><dd>LLM은 원문 ID 순서를 선택하고 글은 원문 조합, 수정 이력 유지</dd><dt>이유</dt><dd>사용자가 확인한 말에 근거한 초안을 만들기 위해서입니다.</dd><dt>한계</dt><dd>사진의 관계/연도 추정 금지. 사용자의 자유 편집 후 문단별 자동 출처 정합성은 보장하지 않음</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details><details><summary>설정 경계</summary><dl class="decision-detail"><dt>문제</dt><dd>진행 중인 인터뷰의 처리 경로가 바뀌지 않아야 합니다.</dd><dt>현재 선택</dt><dd>인터뷰 시작 시 설정 스냅샷, 키는 서버에서만 사용</dd><dt>이유</dt><dd>동의 당시의 실행 경계를 유지하기 위해서입니다.</dd><dt>한계</dt><dd>기존 로컬 인터뷰를 새 외부 API 설정으로 몰래 변경하지 않음</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-plan.md">구현 계획</a></dd></dl></details><details><summary>로컬 보호</summary><dl class="decision-detail"><dt>문제</dt><dd>다른 세션의 접근과 평문 노출을 제한해야 합니다.</dd><dt>현재 선택</dt><dd>세션 소유권, AES-GCM 설정/본문, 허용 호스트·Origin 검증</dd><dt>이유</dt><dd>로컬 서비스 접근과 저장 내용을 보호하기 위해서입니다.</dd><dt>한계</dt><dd>계정 인증/기기 복구 미구현. 키와 데이터가 같은 서버에 있어 서버 탈취까지 막는 것은 아님</dd><dt>근거</dt><dd><a href="project-enhancement-design.md">개선 설계 §6 기술적 고려사항</a> · <a href="project-verification.md">검증 기록</a></dd></dl></details></div></section><section id="privacy" class="block"><h2>어떤 정보가 어디에 남나요?</h2><p class="section-intro">기본 보관 장소는 로컬 서버입니다. 외부 공급자로 보내는 조건은 데이터마다 다릅니다.</p><div class="table-wrap"><table><caption>데이터별 기본 처리와 외부 전송 조건</caption><thead><tr><th scope="col">데이터</th><th scope="col">기본 처리·보관</th><th scope="col">외부 전송 조건</th></tr></thead><tbody><tr><th scope="row">업로드 사진</th><td>로컬 media, 소유권 확인 후 제공</td><td>현재 원본 사진을 이미지 API에 자동 전송하지 않음</td></tr><tr><th scope="row">녹음 음성</th><td>전사를 위한 임시 처리, 서버 지속 저장 안 함</td><td>STT를 API로 선택한 인터뷰 또는 명시적 연결 테스트</td></tr><tr><th scope="row">확인한 글/수정 이력</th><td>SQLite의 암호화된 인터뷰 기록</td><td>TTS를 API로 선택한 인터뷰에서 낭독 요청 시</td></tr><tr><th scope="row">삽화 설명</th><td>사용자가 입력한 설명으로 선택적 이미지 생성</td><td>명시적 생성 버튼 요청 시 GPT Image API</td></tr><tr><th scope="row">API 키</th><td>로컬 서버의 암호화 설정, 화면에는 hasKey만</td><td>지정된 공급자 인증에만 사용</td></tr></tbody></table></div><p class="small">사진 파일 자체는 암호화하지 않습니다. 원음은 지속 보관하지 않지만 전사를 위한 임시 처리는 수행합니다. 이 설명은 법적 인증이나 완전한 익명성·보안 인증을 뜻하지 않습니다.</p><a data-demo="/settings" href="http://127.0.0.1:3000/settings">모델·API 설정 열기 ↗</a></section>
+      </section><section id="decisions" class="block"><h2>이렇게 구현한 이유</h2><p class="section-intro">현재 선택의 이유와 수용한 한계를 함께 살펴보세요.</p><div class="decision-group"><h3>사용 경험</h3><p>사용자가 답변을 확정하는 순간과 충분히 기다릴 시간을 구분합니다.</p><details><summary>웹/모바일</summary><dl class="decision-detail"><dt>문제</dt><dd>여러 기기에서 같은 여정을 제공해야 합니다.</dd><dt>현재 선택</dt><dd>Next.js PWA와 Konsta iOS로 웹 코드와 모바일 탐색을 공유</dd><dt>이유</dt><dd>웹 코드를 공유하면서 익숙한 모바일 탐색을 제공하기 위해서입니다.</dd><dt>한계</dt><dd>React Native 바이너리가 아님. 실제 iPhone 권한·설치 확인 필요</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 요구사항</a></dd></dl></details><details><summary>기다림과 확인</summary><dl class="decision-detail"><dt>문제</dt><dd>말 사이의 쉼을 답변 완료로 오인하지 않아야 합니다.</dd><dt>현재 선택</dt><dd>묵음 3/5/7초, 생각하기, 전사 검토 후 별도 전송</dd><dt>이유</dt><dd>생각할 시간과 글을 바로잡을 기회를 주기 위해서입니다.</dd><dt>한계</dt><dd>녹음 종료와 사용자의 답변 확정은 다른 상태</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 요구사항</a></dd></dl></details><details><summary>긴 낭독</summary><dl class="decision-detail"><dt>문제</dt><dd>긴 글이 한 번의 요청 한도를 넘을 수 있습니다.</dd><dt>현재 선택</dt><dd>로컬 TTS 500자 한도에 맞춰 450자 이하 순차 호출</dd><dt>이유</dt><dd>긴 회고록도 요청 한도 안에서 낭독하기 위해서입니다.</dd><dt>한계</dt><dd>첫 응답과 문장 사이 대기가 존재. 전체 WAV 전달이며 토큰 스트리밍 아님</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details><details><summary>PWA 캐시</summary><dl class="decision-detail"><dt>문제</dt><dd>개인 기록이 브라우저 캐시에 남지 않아야 합니다.</dd><dt>현재 선택</dt><dd>공개 오프라인 안내만 캐시, 개인 API·사진은 캐시하지 않음</dd><dt>이유</dt><dd>민감한 콘텐츠의 캐시 보관을 줄이기 위해서입니다.</dd><dt>한계</dt><dd>인터넷/서버 없이 전체 인터뷰가 되는 오프라인 앱이 아님</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details></div><div class="decision-group"><h3>실행 환경</h3><p>음성 기능을 나눠 선택하고 CPU 실행의 대기 시간을 드러냅니다.</p><details><summary>음성 구성</summary><dl class="decision-detail"><dt>문제</dt><dd>전사와 낭독의 실행 환경을 따로 선택해야 합니다.</dd><dt>현재 선택</dt><dd>STT와 TTS를 분리해 각각 로컬/API 선택</dd><dt>이유</dt><dd>기능별 공급자와 실행 제약을 관리하기 위해서입니다.</dd><dt>한계</dt><dd>음성-to-음성 단일 멀티모달 모델이 아니며 실시간 부분 전사 미구현</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 요구사항</a></dd></dl></details><details><summary>CPU 실행</summary><dl class="decision-detail"><dt>문제</dt><dd>로컬 장비의 자원이 제한됩니다.</dd><dt>현재 선택</dt><dd>Whisper small int8, Qwen3-TTS 0.6B, 동시 음성 추론 1개</dd><dt>이유</dt><dd>CPU에서 실행 가능하도록 모델 크기와 동시 작업을 제한하기 위해서입니다.</dd><dt>한계</dt><dd>모델 파라미터가 작아도 실시간 속도를 보장하지 않음. RAM·디스크·swap 고려</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details><details><summary>장애 대응</summary><dl class="decision-detail"><dt>문제</dt><dd>연결 실패나 잘못된 출력이 대화를 막지 않아야 합니다.</dd><dt>현재 선택</dt><dd>시간 제한과 최종 출력 검증, 실패 시 명시적 안내 모드</dd><dt>이유</dt><dd>기다림에 끝을 두고 실패를 숨기지 않기 위해서입니다.</dd><dt>한계</dt><dd>연결됨/모델 ready는 품질·속도·모든 요청의 성공 보증이 아님</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details></div><div class="decision-group"><h3>기록의 무결성과 보호</h3><p>확인한 원문과 설정을 보존하고 재시도가 기록을 중복시키지 않게 합니다.</p><details><summary>재시도·취소</summary><dl class="decision-detail"><dt>문제</dt><dd>재전송과 늦은 응답이 기록을 중복시킬 수 있습니다.</dd><dt>현재 선택</dt><dd>동일 답변의 requestId 유지, generation으로 늦은 응답 무시</dd><dt>이유</dt><dd>한 답변의 정체성과 현재 화면의 요청을 구분하기 위해서입니다.</dd><dt>한계</dt><dd>재생 중단이 서버 CPU 추론의 선점 종료를 뜻하지 않음</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details><details><summary>저장소</summary><dl class="decision-detail"><dt>문제</dt><dd>모델 대기가 기록 저장을 막지 않아야 합니다.</dd><dt>현재 선택</dt><dd>SQLite WAL과 로컬 파일, 짧은 저장 트랜잭션</dd><dt>이유</dt><dd>한 서버에서 기록을 지속 보관하며 DB 잠금 시간을 줄이기 위해서입니다.</dd><dt>한계</dt><dd>다중 서버 확장·분산 공유 스토리지·고가용성을 구현한 구성 아님</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 요구사항</a></dd></dl></details><details><summary>사실 보존</summary><dl class="decision-detail"><dt>문제</dt><dd>모델이 말하지 않은 사실을 채워 넣지 않아야 합니다.</dd><dt>현재 선택</dt><dd>LLM은 원문 ID 순서를 선택하고 글은 원문 조합, 수정 이력 유지</dd><dt>이유</dt><dd>사용자가 확인한 말에 근거한 초안을 만들기 위해서입니다.</dd><dt>한계</dt><dd>사진의 관계/연도 추정 금지. 사용자의 자유 편집 후 문단별 자동 출처 정합성은 보장하지 않음</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details><details><summary>설정 경계</summary><dl class="decision-detail"><dt>문제</dt><dd>진행 중인 인터뷰의 처리 경로가 바뀌지 않아야 합니다.</dd><dt>현재 선택</dt><dd>인터뷰 시작 시 설정 스냅샷, 키는 서버에서만 사용</dd><dt>이유</dt><dd>동의 당시의 실행 경계를 유지하기 위해서입니다.</dd><dt>한계</dt><dd>기존 로컬 인터뷰를 새 외부 API 설정으로 몰래 변경하지 않음</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 요구사항</a></dd></dl></details><details><summary>로컬 보호</summary><dl class="decision-detail"><dt>문제</dt><dd>다른 세션의 접근과 평문 노출을 제한해야 합니다.</dd><dt>현재 선택</dt><dd>세션 소유권, AES-GCM 설정/본문, 허용 호스트·Origin 검증</dd><dt>이유</dt><dd>로컬 서비스 접근과 저장 내용을 보호하기 위해서입니다.</dd><dt>한계</dt><dd>계정 인증/기기 복구 미구현. 키와 데이터가 같은 서버에 있어 서버 탈취까지 막는 것은 아님</dd><dt>근거</dt><dd><a href="project-prd.md">PRD §6 기술적 고려사항</a> · <a href="project-prd.md">PRD 검증 범위</a></dd></dl></details></div></section><section id="privacy" class="block"><h2>어떤 정보가 어디에 남나요?</h2><p class="section-intro">기본 보관 장소는 로컬 서버입니다. 외부 공급자로 보내는 조건은 데이터마다 다릅니다.</p><div class="table-wrap"><table><caption>데이터별 기본 처리와 외부 전송 조건</caption><thead><tr><th scope="col">데이터</th><th scope="col">기본 처리·보관</th><th scope="col">외부 전송 조건</th></tr></thead><tbody><tr><th scope="row">업로드 사진</th><td>로컬 media, 소유권 확인 후 제공</td><td>현재 원본 사진을 이미지 API에 자동 전송하지 않음</td></tr><tr><th scope="row">녹음 음성</th><td>전사를 위한 임시 처리, 서버 지속 저장 안 함</td><td>STT를 API로 선택한 인터뷰 또는 명시적 연결 테스트</td></tr><tr><th scope="row">확인한 글/수정 이력</th><td>SQLite의 암호화된 인터뷰 기록</td><td>TTS를 API로 선택한 인터뷰에서 낭독 요청 시</td></tr><tr><th scope="row">삽화 설명</th><td>사용자가 입력한 설명으로 선택적 이미지 생성</td><td>명시적 생성 버튼 요청 시 GPT Image API</td></tr><tr><th scope="row">API 키</th><td>로컬 서버의 암호화 설정, 화면에는 hasKey만</td><td>지정된 공급자 인증에만 사용</td></tr></tbody></table></div><p class="small">사진 파일 자체는 암호화하지 않습니다. 원음은 지속 보관하지 않지만 전사를 위한 임시 처리는 수행합니다. 이 설명은 법적 인증이나 완전한 익명성·보안 인증을 뜻하지 않습니다.</p><a data-demo="/settings" href="http://127.0.0.1:3000/settings">모델·API 설정 열기 ↗</a></section>
 <section id="evidence" class="block"><h2>확인한 결과와 아직 남은 과제</h2>
 <p class="section-intro"><time datetime="2026-09-14">2026년 9월 14일</time>의 검증 기록입니다. M1 Pro 8코어, RAM 16GB에서 음성 추론 CPU 4스레드로 측정했습니다.</p>
 <div class="benchmark"><div><h3>음성 생성</h3><p class="measurement">41.23초 / 42.229초</p><p>길이 8.24초 / 7.60초의 합성 음성을 만드는 데 걸린 서버 시간입니다.</p></div><div><h3>음성 전사</h3><p class="measurement">2.517초 / 2.711초</p><p>첫 입력에서 ‘봄에’를 ‘봄의’로 인식한 오류가 있었습니다.</p></div></div>
 <p>한국어 대본 하나를 두 번 시험한 결과입니다. p50/p95 통계나 어르신 발화 평가가 아니며 실시간 대화를 보장하지 않습니다.</p>
 <p>당시 코드에서 Node 10개/Python 9개 테스트와 Playwright가 통과했습니다. Qwen3 질문은 검증 실행 중 안내 모드로 전환됐고, 회고록 원문 정리는 Ollama 경로를 확인했습니다.</p>
 <aside class="note"><strong>별도 확인이 필요한 범위</strong><p>실제 iPhone 마이크, 실제 어르신 발화, 유료 API 실호출, 가족 계정·기기 복구, 운영 배포, 다중 사용자 부하, 실시간 지연 목표.</p></aside>
-<p><a href="project-verification.md">측정 조건과 검증 기록 읽기 ↗</a> · <a href="#demo">현재 연결 상태 확인 ↓</a></p></section>
+<p><a href="project-prd.md">측정 조건과 검증 기록 읽기 ↗</a> · <a href="#demo">현재 연결 상태 확인 ↓</a></p></section>
       <section id="plan" class="block">
         <div class="section-head">
           <div>
 
-            <h2>계획과 결과를<br />같은 자리에서 확인하세요.</h2>
+            <h2>제품의 목적과 요구사항을<br />한 문서에서 확인하세요.</h2>
           </div>
           <p>
-            계획서는 범위·화면·API·상태·저장 원칙을 설명하고, 검증 기록은 실제
-            통과 결과와 미달한 부분을 구분합니다.
+            PRD는 사용자 여정, 기능 요구사항, 구현 구조, 데이터 처리와
+            검증 범위·남은 과제를 설명합니다.
           </p>
         </div>
         <div class="documents">
-          <article class="document"><h3>로컬 우선 PWA 구현 계획서</h3><p>사용자 여정, 화면·API 계약, 설정과 저장 원칙을 설명합니다.</p><a href="project-plan.md" download>계획서 MD 내려받기 ↓</a></article>
-          <article class="document"><h3>검증 결과와 운영 제한</h3><p>실제 CPU 측정, 실패 전환, 보안 점검과 미검증 범위를 기록합니다.</p><a href="project-verification.md" download>검증 기록 MD 내려받기 ↓</a></article>
-          <article class="document"><h3>소개 페이지 개선 설계</h3><p>기술 설명의 구성, 데이터 경계, 다이어그램과 수용 기준을 정의합니다.</p><a href="project-enhancement-design.md" download>개선 설계 MD 내려받기 ↓</a></article>
+          <article class="document"><h3>기억의 조각 PRD</h3><p>목적·요구사항·기술적 고려사항·데이터 처리·성능 한계와 후속 과제를 한 문서로 정리했습니다.</p><a href="project-prd.md" download>PRD MD 내려받기 ↓</a></article>
         </div>
         <details>
-          <summary>계획서 전체 내용 펼치기</summary>
-          <pre id="plan-source"># 기억의 조각 로컬 우선 PWA 구현 계획서
+          <summary>PRD 전체 내용 펼치기</summary>
+          <pre id="plan-source"># 기억의 조각 — 제품 요구사항 정의서 (PRD)
 
-작성: 2026-09-14. 상태: MVP 구현·자동 검증 완료, CPU 실시간 지연 목표 미달. 사용자가 승인한 Next.js PWA + Konsta UI iOS 테마를 기준으로 한다. 실제 하드웨어/외부 유료 API 검증 범위는 `../../verification.md`를 참조한다.
+버전 1.0 · 2026-09-15 · 로컬 우선 교육·멘토링 MVP
 
-**목표:** 사진 한 장에서 시작해 어르신의 말을 엽서로 남기고, 원할 때만 인터뷰를 이어 원문 대조 회고록을 완성한다.
+이 문서는 제품의 목적, 사용자 여정, 구현된 요구사항, 기술적 선택, 검증 범위와 후속 과제를 정의한다. 실행 방법은 저장소 README, 상세 음성 설치 방법은 앱의 speech/README를 따른다.
 
-**기준 문서:** `../../../프로젝트_개요_기억의조각.md`와 `../../../종합_구현가이드_기억의조각.md`, 상위 `기억의조각_통합프로토타입_v10.html`. 이 계획의 로컬 모델·SQLite 선택은 기존 가이드의 관리형 음성 API·PostgreSQL 기본안을 이번 MVP에 한해 대체한다. 사용자 여정은 유지한다.
+## 1. 제품 목적과 대상 사용자
 
-**실행:** 프런트엔드·API·음성 서비스를 병렬 구현하고 별도 검증 에이전트가 검토한다. 구현 테스트와 Playwright UI 테스트 후 이번 작업 파일만 커밋한다. 앱은 `memory-app/`에 둔다. 기존 사용자 파일을 포함하는 광역 커밋을 하지 않는다.
+**사진 한 장에서 시작해 사용자가 확인한 말을 추억 엽서로 남기고, 원할 때만 대화를 이어 회고록을 완성한다.**
 
-## 1. 범위와 완료 기준
+주 사용자는 사진을 보며 자신의 기억을 말로 남기고 싶은 60~70대 사용자다. 가족·보조자는 초기 실행과 기기 사용을 돕고, 멘토·개발자는 가상 시나리오로 제품 흐름과 구현 원리를 확인한다.
 
-- [x] 실제 사진 업로드 또는 제공된 가상 추억사진으로 인터뷰 시작.
-- [x] 사진에서 확인되지 않은 시대·인물 관계를 추정하여 사실로 단정하지 않는 첫 질문.
-- [x] 한국어 마이크 입력과 편집 가능한 전사. 별도 텍스트 모드로 같은 흐름 완주. 마이크 수명주기는 가상 장치, 음성 정확도는 실제 모델의 합성 음성으로 분리 검증.
-- [x] 첫 답변만으로 엽서 작성·편집·PNG 내려받기·SQLite 저장.
-- [x] 엽서에서 종료하거나, 본인이 선택하면 2~3턴 더 대화.
-- [x] 원문·수정 이력과 초안 구성 출처를 확인·승인·저장·낭독. 자유 편집 후 현재 문단과 출처가 정확히 일치한다고 표시하지 않음.
-- [x] 기본 묵음 5초, 선택 3/5/7초, 생각 중 일시정지, 수동 완료, 음성 재생 중단.
-- [x] 홈·이야기 시작·보관함·설정 탭, 상단 화면 선택 메뉴, 뒤로가기 동작.
-- [x] 로컬 STT/TTS 기본, 독립적인 API 전환 및 연결 테스트, 모델 다운로드·준비 상태. 외부 API는 유료 호출 없이 계약 검증.
-- [x] 샘플 미리보기 메뉴와 가상 시나리오. 실제 추론 여부를 명확히 표시.
-- [x] 모바일 PWA manifest, 설치 안내, 안전한 오프라인 안내, 세션 복구. 실제 iPhone 홈 화면 설치는 수동 확인 대상.
-- [x] 파일·SQLite 소유권 검사, 서버에만 API 키 보관, 삭제 기능.
-- [x] 독립 코드 검토, 빌드·타입·단위·통합·Playwright 검증과 git 커밋.
+해결할 문제:
 
-가족 허브·페어링·인생 연대기·출판·음성 복제는 원기획대로 후속 단계다. 가족의 실제 개인정보는 시연용으로 사용하지 않는다.
+- 긴 글 작성 부담 때문에 기억을 기록하기 어렵다.
+- 짧은 침묵을 답변 종료로 오인하면 사용자가 충분히 생각할 수 없다.
+- AI가 사진의 시대·관계·장소를 추정하거나 원문을 각색하면 실제 기억과 구분하기 어렵다.
+- 음성 인식 오류를 확인 없이 저장하거나 외부로 전송하면 신뢰와 통제권을 잃는다.
 
-## 2. 제품과 디자인
+핵심 원칙은 짧게 시작하기, 기다려 주기, 사용자 확인 후 저장하기, 사실을 새로 만들지 않기, 데이터 처리 위치를 명확히 알리기다.
 
-60~70대 사용자가 가족의 도움 없이 사진과 말로 첫 기록을 남기는 경험이 우선이다. 브랜드는 `기억의 조각`, 종이색 `#F7F5F0`, 초록 `#1B5E20`, 본문 `#1A202C`를 유지한다. Konsta UI의 실제 React 컴포넌트를 사용하며 Next.js 라우터와 연결한다. 랜딩에 한해 design-taste-frontend 적용: DESIGN_VARIANCE=3, MOTION_INTENSITY=2, VISUAL_DENSITY=4. 인터뷰 폼에는 마케팅 화면 규칙을 강제하지 않는다.
+## 2. MVP 범위
 
-| 경로 | 목적과 필수 동작 |
-|---|---|
-| `/` | 사진 중심 소개, 사진으로 시작하기, 샘플 미리보기, 최근 기록 |
-| `/start` | 처리 안내와 동의, 사진 파일 선택·샘플 사진 선택, 시작 |
-| `/interview/[id]` | 사진·질문 하나·자막·텍스트 전환·녹음·수정·생각 시간·완료 |
-| `/postcard/[id]` | 승인 텍스트 기반 엽서, 수정·PNG 저장, 종료/더 이야기하기 |
-| `/memoir/[id]` | 원문 대조, 출처 확인, 사용자 수정·승인, 낭독 |
-| `/library` | 내 기록 필터·열기·삭제, 빈 화면 안내 |
-| `/preview` | 가상 소풍 시나리오, 샘플 텍스트로 실제 저장 흐름 체험 |
-| `/settings` | 큰글씨·테마·묵음, STT/TTS/LLM/이미지 연결·모델 관리 |
+포함 기능:
 
-상단: 브랜드 또는 화면명, 화면 선택 콤보, 설정. 하단: 홈/이야기 시작/보관함/설정. 터치 영역 최소 48px, 핵심 버튼 56px, 큰글씨 본문 20~22px, 200% 확대·키보드·포커스 표시·스크린리더·모션 감소 지원. 일반 모드는 16~18px. 라이트/다크 팔레트에서 대비 확인. safe-area와 동적 뷰포트 사용. 데스크톱에서는 사진·내용의 읽기 좋은 2열, 모바일에서는 단일 열.
+- 실제 사진 업로드 또는 가상 샘플 사진으로 인터뷰 시작.
+- 한국어 음성 입력과 전사 수정·확인, 같은 흐름으로 완주하는 텍스트 입력.
+- 첫 답변으로 엽서 작성·편집·저장·PNG 다운로드.
+- 사용자가 선택한 추가 인터뷰와 원문 기반 회고록 작성·편집·승인·낭독.
+- 로컬 저장, 원문·수정 이력 보존, 보관함 열기·삭제.
+- 로컬 STT/TTS 기본 설정과 각각의 선택적 외부 API 연동.
+- 모델 다운로드·준비 상태, 테마·큰글씨·묵음 시간 설정.
+- 가상 사진과 대본을 사용하는 미리보기, 아키텍처와 기술 고려사항을 설명하는 소개 페이지.
 
-## 3. 실행 구조
+범위 밖: 가족 계정·페어링, 기기 간 복구·공유, 인생 연대기, 출판, 음성 복제, 실시간 전이중 음성 대화, 완전 오프라인 인터뷰, 다중 서버 운영과 인터넷 서비스 배포.
 
-```text
-휴대폰 Next.js PWA (화면·마이크·사진·Canvas)
-    → 같은 출처 Next.js Node API (세션·설정·소유권·원문·작업)
-        → SQLite WAL + 로컬 media 디렉터리
-        → 로컬 Python 음성 서비스 :8765 (faster-whisper / Qwen3-TTS)
-        → 로컬 Ollama :11434 (Qwen3 4B, 기존 설치 확인)
-        → 사용자가 설정한 외부 STT/TTS/이미지 API (선택)
-```
+## 3. 핵심 사용자 여정
 
-모델은 휴대폰이 아니라 개발자 Mac 또는 CPU 서버에서 실행한다. 현재 확인 장비는 M1 Pro 8코어/16GB이며 일반 x86 서버의 실측 결과로 간주하지 않는다. 모델 다운로드 후 로컬 STT/TTS/LLM 동작은 외부 API에 의존하지 않는다. PWA 오프라인은 화면·샘플 안내 범위이며 서버 없이 AI 인터뷰가 된다고 표시하지 않는다. 휴대폰 LAN 마이크 사용에는 신뢰되는 HTTPS가 필요하다. 개발자 PC의 localhost 테스트와 구분한다.
+1. **사진 선택과 동의:** 처리 안내를 읽고 사진을 업로드하거나 가상 샘플을 선택한다.
+2. **첫 질문:** 사진 속 인물 관계·연도·장소를 사실로 추정하지 않는 질문을 받는다.
+3. **답변과 확인:** 음성 또는 글로 답한다. 전사된 글을 수정하고 별도로 확인·전송한다.
+4. **첫 결과:** 확인한 이야기로 엽서를 보고 수정·저장·다운로드한다. 여기서 끝내도 된다.
+5. **선택적 이어 말하기:** 원하면 같은 인터뷰에서 몇 차례 더 답한다.
+6. **회고록:** 원문과 초안 구성 출처를 확인하고 편집·승인한다. 이후 보관함에서 다시 연다.
 
-API 키와 인터뷰 스냅샷은 서버 SQLite에 AES-GCM 암호화해 보관하고 암호화 키 파일은 로컬 0600 권한으로 보호한다. 클라이언트에는 hasKey만 반환하며 번들, service worker, localStorage에는 키를 넣지 않는다. 모든 사용자 데이터 API는 서명되지 않은 임의 사용자 ID 대신 서버 발급 HttpOnly 세션으로 소유권을 검사한다. 단일 기기 게스트 MVP이며 카카오 OAuth·다중 기기 동기화가 구현됐다고 표시하지 않는다.
+미리보기는 AI 생성 가상 사진과 사용자가 선택한 샘플 대본으로 진행한다. 실제 가족 사진이나 기존 사용자의 기록을 장식·시연 자료로 사용하지 않는다. 텍스트 데모는 실제 API와 SQLite 저장 흐름을 사용하며, 모델이 없으면 안내 질문 모드임을 표시한다.
 
-## 4. 모델과 설정
+## 4. 기능 요구사항과 수용 조건
 
-| 역할 | 기본 | 선택 방식 |
+| ID | 요구사항 | 수용 조건 |
 |---|---|---|
-| STT | faster-whisper small, CPU int8, 한국어 | OpenAI 호환 transcription API, 서버에서 키 사용 |
-| TTS | Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice, Korean, Sohee | OpenAI 호환 speech API, 서버에서 키 사용 |
-| 질문/회고록 | Ollama qwen3:4b | 연결 실패 시 원문을 보존하는 안내 질문/원문 정리 모드 표시 |
-| 샘플 사진 | 생성 완료된 GPT Image 소풍 이미지 | 원본 파일 다운로드/업로드, 런타임 API 호출 없이 시연 |
-| 추가 삽화 | GPT Image API, 명시적 생성 요청 | API 키 미설정 시 비활성, 기본 사진 엽서는 계속 완성 가능 |
+| F01 | 사진으로 시작 | 업로드·가상 샘플 모두 처리 안내와 동의를 거쳐 인터뷰를 생성한다. |
+| F02 | 한국어 답변 | 음성과 글 입력을 제공하고, 전사 결과를 사용자가 고친 뒤 저장한다. |
+| F03 | 생각할 시간 | 묵음 3/5/7초(기본 5초), 생각하기·재개·수동 완료·취소를 제공한다. |
+| F04 | 추억 엽서 | 첫 확정 답변으로 결과를 표시하고 편집·저장·PNG 다운로드가 가능하다. |
+| F05 | 회고록 | 확인된 원문을 바탕으로 초안을 만들고, 출처·수정 이력·승인 상태를 구분한다. |
+| F06 | 보관함 | 자신의 기록만 조회·열기·삭제하며 다른 게스트의 데이터에 접근할 수 없다. |
+| F07 | 음성 공급자 | STT/TTS 각각 로컬 또는 API를 선택·저장·테스트하며 키는 화면에 재노출하지 않는다. |
+| F08 | 모델 관리 | missing/downloading/ready/error를 구분하고 실제 런타임 로드 성공 후 ready로 표시한다. |
+| F09 | 모바일 탐색 | 하단 탭, 상단 화면 선택, 설정, 뒤로가기가 동작하며 작은 화면에서도 읽을 수 있다. |
+| F10 | 실패 대응 | 전사·생성·낭독 실패를 알리고, 텍스트 입력·재시도·안내 모드 등 가능한 선택을 제공한다. |
+| F11 | PWA | 설치 안내·manifest를 제공하고, 서버 연결이 없을 때 공개 오프라인 안내를 표시한다. |
+| F12 | 제품 소개 | 아키텍처·처리 과정·기술 선택·데이터 경계·제약·PRD·데모를 같은 페이지에서 확인한다. |
 
-0.6B CustomVoice와 Base의 용도를 혼동하지 않는다. 이번 앱은 Sohee 고정 음성으로 음성 복제를 하지 않는다. 0.6B의 instruction control은 공식 표에서 지원이 명시되지 않았으므로 감정 프롬프트 제어 UI를 제공하지 않는다. 모델/런타임 버전을 기록한다.
+주요 화면은 `/`, `/start`, `/interview/[id]`, `/postcard/[id]`, `/memoir/[id]`, `/library`, `/preview`, `/settings`이며 소개 페이지는 `/project.html`이다.
 
-설정은 STT와 TTS를 각각 `local` 또는 `api`로 선택한다. 공급자, base URL, 모델, 음성, API 키 입력과 지우기, 저장, 짧은 샘플 테스트를 제공한다. 테스트 결과는 성공 여부·오류·시간을 표시한다. 저장만으로 연결 성공으로 표시하지 않는다. API 변경은 새 요청/새 세션부터 적용하고 기존 인터뷰 설정 스냅샷은 유지한다. 실패 시 외부 API로 조용히 전환하지 않는다.
+한국어 가독성, 충분한 터치 영역, 큰글씨, 명확한 처리 상태, 키보드 포커스, 라이트/다크, 모션 감소를 우선한다. 브랜드의 종이색과 초록 계열을 유지한다. 설치 가능한 웹 앱인 PWA이며 React Native 네이티브 바이너리는 아니다.
 
-로컬 모델 관리: 상태 `missing/downloading/ready/error`, 다운로드 크기·진행 상태 또는 수신 파일 수, 재시도, 현재 경로 표시. 앱 관리자용 다운로드는 사전 지정된 모델만 허용하고 임의 shell 명령·경로·저장소 실행은 받지 않는다. 캐시와 모델은 git에서 제외한다. 기본 동시 추론 1개, 짧은 질문과 긴 낭독을 분리하고 중단된 응답은 재생하지 않는다.
+## 5. 실행 구조와 공통 API 계약
 
-GPT Image는 로컬 가중치 설치 모델이 아니다. 이미지 생성 API 연동 코드를 로컬에 구성하며 결과 파일은 로컬에 저장한다. 외부 이미지 생성에는 입력 텍스트가 공급자에게 전달됨을 표시한다. 원본 사진을 자동 전송하지 않는다. Object Storage는 사용하지 않는다.
-
-## 5. 샘플과 실제 인터뷰
-
-샘플 사진: `assets/samples/spring-picnic.png` (AI 생성, 가상 한국 가족의 봄 소풍). 샘플 메뉴에서 다운로드 후 사진 업로드로 시작할 수도 있고 같은 자산을 선택해 바로 시작할 수도 있다. 화면과 결과물에 샘플임을 유지한다.
-
-가상 답변 예: “봄에 가족과 소풍을 갔어요. 어머니가 싸 주신 김밥을 나무 아래에서 먹었어요.” 후속 답변: “아버지는 사진을 찍는 걸 좋아하셨어요.” / “정확한 연도는 기억나지 않지만 그날 참 즐거웠어요.” 사진에서 연도·장소·실제 가족관계를 추출했다고 설명하지 않는다. 샘플 대본은 사용자가 선택해 입력하고 실제 인터뷰에 자동 삽입하지 않는다.
-
-미리보기는 텍스트만으로 모델·마이크 없이 UI 여정을 이해하는 설명 모드와, 샘플 답변으로 실제 API·SQLite를 거치는 텍스트 데모로 나눈다. 저장하지 않는 설명 모드는 명확히 표시한다. 실제 텍스트 데모의 질문이 LLM인지 안내 질문인지 기록한다.
-
-## 6. 인터뷰 상태와 원문
-
-`ready → listening → silence_wait → transcribing → review → answering → ready`.
-`paused`에서는 마이크 전송·묵음 타이머·AI 재생을 멈춘다. 다시 시작은 명시적 버튼으로 한다. VAD의 구간 종료와 사용자 차례 종료를 구분한다. 기본 5초 동안 다시 발화하면 타이머 취소. 다 말했어요는 대기를 생략한다. STT가 오류여도 입력 오디오 재시도 또는 텍스트 입력으로 같은 턴을 완성한다. 녹음은 120초 이하로 제한하고 UI에 안내한다.
-
-faster-whisper는 자체 native streaming STT가 아니다. 첫 구현은 녹음 구간 전사와 확정 전사를 우선하고, 실제 partial 미구현 상태에서 타자 애니메이션을 실시간 인식으로 표시하지 않는다. TTS는 런타임 지원에 따라 문장 단위 생성/재생을 사용하며 전체 WAV 완성 후 전송을 token streaming이라고 부르지 않는다. 해당 차이와 실측 지연을 검증 보고서에 기록한다.
-
-사용자 승인 후 확정 전사를 저장한다. 수정 시 원문을 덮어쓰지 않고 revision 추가. 회고록은 source fragment ID/revision을 연결하며 이름·연도·장소를 새로 만들지 않는다. AI 초안은 사용자가 수정·승인하기 전 미승인 표시. 이미지·긴 낭독 실패는 원문·엽서 저장을 롤백하지 않는다. 취소된 generation ID의 늦은 결과는 무시한다.
-
-## 7. 공통 API 계약 (병렬 구현 기준)
-
-JSON 오류는 `{error:string}`. 설정은 `GET/PUT /api/settings`, 준비 상태는 `GET /api/health`.
-
-| API | 입력/출력 |
+| 구성 요소 | 책임 |
 |---|---|
-| `GET /api/interviews` | `{interviews: Interview[]}` |
-| `POST /api/interviews` | multipart `photo`, `consent=true`, `sample=true/false`; 또는 JSON `{sample:true,consent:true}` → `{interview}` |
-| `GET /api/interviews/:id` | `{interview}` (fragments 포함) |
-| `DELETE /api/interviews/:id` | `{ok:true}`; 소유 데이터 삭제 |
-| `POST /api/interviews/:id/turns` | `{text,requestId}` → `{interview,question,source:&#39;ollama&#39;|&#39;guided&#39;}` |
-| `PATCH /api/interviews/:id/fragments/:fragmentId` | `{text}` → `{interview}` |
-| `POST /api/interviews/:id/postcard` | `{text}` → `{interview}` |
-| `POST /api/interviews/:id/memoir` | `{}` 초안 생성 또는 `{text,approved:true}` 저장 → `{interview}` |
-| `POST /api/stt` | multipart audio → `{text,provider,elapsedMs}` |
-| `POST /api/tts` | `{text}` → audio/wav 또는 audio/mpeg |
-| `POST /api/models/download` | `{kind:&#39;stt&#39;|&#39;tts&#39;}` → `{status}` |
-| `POST /api/image` | `{prompt,interviewId}` → `{url}`; GPT Image, 키 필요 |
-| `GET /api/media/:id` | 소유권 검증된 로컬 파일 |
+| Next.js PWA / React / Konsta iOS | 사진·마이크 입력, 전사 검토, 탐색, 엽서 Canvas, 회고록 편집 |
+| Next.js Node API | 게스트 세션, 소유권, 설정, 원문 저장, 공급자 호출 |
+| SQLite WAL + 로컬 파일 | 인터뷰·수정 이력·설정, 사진·이미지 보관 |
+| Python FastAPI 음성 서비스 | faster-whisper small CPU int8 / Qwen3-TTS 0.6B CustomVoice 한국어 Sohee |
+| Ollama qwen3:4b | 질문 및 원문 기반 회고록 구성, 실패 시 명시적 안내 모드 |
+| 선택적 외부 API | 사용자 설정에 따른 STT/TTS, 명시적 GPT Image 생성 |
 
-`Interview={id,title,photoUrl,isSample,stage,createdAt,updatedAt,fragments,postcardText,memoirText,memoirApproved}`. `Fragment={id,original,text,revisions:string[],createdAt}`.
+기본 포트는 앱 3000, 음성 서비스 8765, Ollama 11434이며 로컬 루프백을 사용한다. “로컬”은 연결된 서버에서의 추론을 뜻한다. 휴대폰 내부에서 모델이 실행되는 것은 아니다.
 
-`Settings={largeText:boolean,theme:&#39;light&#39;|&#39;dark&#39;|&#39;system&#39;,silenceSeconds:3|5|7,inputMode:&#39;voice&#39;|&#39;text&#39;,stt:{mode,baseUrl,model,apiKey?,hasKey?},tts:{mode,baseUrl,model,voice,apiKey?,hasKey?},llm:{baseUrl,model},image:{model,apiKey?,hasKey?}}`. Keys PUT only, GET returns `hasKey` without plaintext. Backend supplies defaults. `Health={speech:{online,stt:{status},tts:{status}},llm:{online},storage:&#39;sqlite&#39;}`. Python internal contracts: `/health`, `/models/download`, `/stt` multipart audio, `/tts` JSON text. Python service loopback only.
+녹음 구간 전송 → 전사 반환 → 사용자 수정·확인 → 확정 턴 저장 → 다음 질문 생성 → 엽서 화면 표시 순서다. 텍스트 입력은 녹음·전사를 건너뛰고 확인·저장에 합류한다. 모델 응답 대기 중에는 저장 트랜잭션을 유지하지 않는다.
 
-## 8. 영속 저장과 복구
+| API 영역 | 계약 |
+|---|---|
+| 설정·상태 | GET/PUT `/api/settings`, GET `/api/health` |
+| 인터뷰 | GET/POST `/api/interviews`, GET/DELETE `/api/interviews/:id` |
+| 답변·수정 | POST `/api/interviews/:id/turns`에 text/requestId, PATCH fragment에 수정 text |
+| 결과물 | POST `/api/interviews/:id/postcard`, POST `/api/interviews/:id/memoir` |
+| 음성 | POST `/api/stt` multipart audio, POST `/api/tts` text |
+| 모델·이미지 | POST `/api/models/download`에 stt/tts 종류, POST `/api/image`에 prompt/interviewId |
+| 미디어 | GET `/api/media/:id`, 소유권 확인 후 제공 |
 
-SQLite WAL로 interviews, fragments/revisions, settings, media, generations를 저장한다. 미디어는 `memory-app/data/media/`, DB는 `memory-app/data/memory.sqlite`에 둔다. 확정 데이터는 트랜잭션으로 저장하며 추론 중에는 DB 잠금을 유지하지 않는다. 단일 writer를 전제로 busy timeout을 설정한다.
+오류는 JSON error로 반환한다. 설정 조회는 API 키 원문 대신 hasKey만 반환한다. 인터뷰 시작 시 공급자 설정을 스냅샷으로 보존한다. 구체적인 타입은 앱의 `src/lib/contracts.ts`가 정의한다.
 
-위 저장 원칙의 사용자 표시는 한국어로 한다. 원음은 기본적으로 처리 후 폐기한다. 소장용 육성·복제는 포함하지 않는다. 새로고침 시 확정된 대화는 복구하고 미전송 입력은 별도 안내한다. 일관된 SQLite backup과 media 목록으로 로컬 백업·복원 절차를 문서화한다. 서비스워커는 개인 미디어와 API 응답을 캐시하지 않는다.
+## 6. 기술적 고려사항
 
-## 9. 작업 분담과 구현 순서
+| 주제 | 선택과 이유 | 제약 |
+|---|---|---|
+| 웹·모바일 | PWA로 웹 코드와 모바일 탐색을 공유 | 네이티브 앱이 아니며 실제 iPhone 권한·설치를 별도 확인해야 한다. |
+| 음성 분리 | STT/TTS를 독립 교체해 로컬·API 선택 가능 | 음성-to-음성 단일 멀티모달 모델이나 실시간 부분 전사가 아니다. |
+| CPU 추론 | Whisper small int8, Qwen3-TTS 0.6B, 동시 음성 추론 1개 | 작은 모델도 실시간 속도를 보장하지 않으며 RAM·디스크가 필요하다. |
+| 확정 시점 | 녹음 종료와 답변 확인을 구분 | 묵음 감지는 사용자의 저장 승인과 다르다. |
+| 긴 낭독 | 로컬 500자 한도에 맞춰 450자 이하 순차 호출 | 전체 WAV 완성 후 전달하며 문장 사이 대기가 있다. |
+| 재시도·취소 | requestId 중복 방지와 세대 번호로 늦은 결과 무시 | 재생 중단이 서버 CPU 추론의 선점 종료는 아니다. |
+| 저장 | SQLite WAL, 로컬 파일, 짧은 저장 트랜잭션 | 다중 서버 공유 저장소·고가용성 구성은 아니다. |
+| 사실 보존 | 원문 ID 순서로 초안을 구성하고 수정 이력 유지 | 사용자 자유 편집 후 문단별 출처 정합성을 보장하지 않는다. |
+| 설정 경계 | 시작 시 스냅샷, 서버에서만 키 사용 | 새 설정이 진행 중 인터뷰에 조용히 적용되지 않는다. |
+| 장애 대응 | 시간 제한·출력 검증·안내 모드 | ready/연결됨은 품질·속도·모든 요청 성공의 보증이 아니다. |
+| 로컬 보호 | 게스트 소유권, AES-GCM, 허용 호스트·Origin 검사 | 계정·기기 복구가 없고 서버와 키 동시 탈취까지 방어하지 않는다. |
+| PWA 캐시 | 공개 오프라인 안내만 캐시 | 개인 사진·API는 캐시하지 않으며 서버 없이 인터뷰할 수 없다. |
 
-1. 루트: 계획·공통 계약·패키지 설정·샘플·통합/빌드·검증 보고·커밋.
-2. 프런트 에이전트: `memory-app/src/app` UI(단 api 제외), `src/components`, `src/hooks`, PWA. Konsta iOS, 텍스트 데모, 편집·Canvas 다운로드, 내비게이션, 실제 API 연결.
-3. 백엔드 에이전트: `src/app/api`, `src/server`, `tests/server*`. SQLite CRUD·세션 분리·설정 비밀값·Ollama·API adapters·사진 저장.
-4. 음성 에이전트: `speech/`, `scripts/setup-speech*`, Python 테스트. CPU 로컬 설치·다운로드·faster-whisper·Qwen3-TTS·실측.
-5. 별도 검증 에이전트: 수정 소유권 없이 실제 앱·코드·요구사항을 검토하고 재현 가능한 결함 보고. 루트가 수정·재검증.
+GPT Image는 로컬 설치 모델이 아니라 선택적 외부 API다. 생성된 가상 샘플 파일만으로 기본 데모를 수행할 수 있다. 외부 음성·이미지 API로 자동 장애 전환하지 않는다.
 
-각 구현자는 중요한 상태/데이터 무결성 동작의 실패 테스트를 먼저 확인한 뒤 구현한다. 테스트 환경은 격리된 임시 DB와 허구 데이터. 외부 API 유료 호출은 mock 서버로 계약 검증하고 실제 호출 여부를 별도 보고한다. 라이브 키가 없으면 실제 API 검증 미실시로 기록한다.
+## 7. 데이터 처리와 보안 요구사항
 
-## 10. 검증·패턴 점검
+| 데이터 | 기본 처리·보관 | 외부 전송 조건 |
+|---|---|---|
+| 사진 | 로컬 media, 소유권 검사; 파일 자체는 비암호화 | 현재 원본 사진을 이미지 API로 자동 전송하지 않는다. |
+| 녹음 | 전사 중 임시 처리, 서버 지속 보관 안 함 | STT API를 선택한 인터뷰 또는 명시적 연결 테스트 |
+| 확인한 글·수정 이력 | 암호화된 SQLite 기록 | TTS API를 선택한 인터뷰에서 낭독 요청 시 |
+| 삽화 설명 | 명시적 생성 입력, 결과는 로컬 저장 | GPT Image 생성 버튼 요청 시 |
+| API 키 | 서버의 암호화 설정, 화면은 hasKey 표시 | 설정된 공급자의 인증 요청에만 사용 |
 
-- 빌드·타입검사·테스트 통과. SQLite 재시작/재조회 영속성과 다른 사용자 접근 거절 확인.
-- Playwright: 모바일 390×844와 데스크톱 1440×1000에서 사진 업로드→텍스트 답변→엽서→심층 인터뷰→회고록 승인→보관함 재열기. 설정 저장·상단 콤보·하단 탭·샘플 진입·큰글씨·다크·삭제를 확인.
-- 실제 마이크가 불가능한 자동화에서는 녹음 fixture를 STT로 보내고 텍스트 모드 E2E를 실행. 실제 휴대폰 하드웨어 녹음 검증과 구분한다.
-- TTS 생성 WAV의 길이/샘플레이트/첫 생성 지연, STT 결과·품질·처리 시간 기록. 모델 파일 존재만으로 준비 완료 처리하지 않는다.
-- 목표 p50 1.5초/p95 3초는 원기획 목표이며 보장치가 아니다. 묵음 포함 시간과 commit→실제 재생을 분리한다. CPU 미달은 수치로 공개한다.
-- API 실패/모델 미설치/빈 입력/과대 파일/일시정지/재접속/중복 requestId/원문 수정 후 재생성을 시험.
-- 패턴 점검: 거대 컴포넌트 분리, 동일 설정의 이중 소유 금지, raw DB 직접 UI 노출 금지, 프로바이더 분기 격리, 늦은 비동기 결과 방지, 에러 삼키기·거짓 성공 표시 제거.
-- git은 계획→기능 통합→검증 수정 단위로 이번 앱/문서/샘플만 지정하여 커밋.
+DB·미디어·로컬 암호화 키는 `memory-app/data/`에 생성되며 Git에서 제외한다. 백업은 서버 정상 종료 후 데이터와 키를 함께 보호해야 한다. 게스트 쿠키를 잃으면 이 백업만으로 새 브라우저의 소유권이 복구되지는 않는다.
 
-## 11. 근거
+키·개인 사진·음성·DB·모델은 공개 저장소나 이슈에 포함하지 않는다. 보관함 삭제는 해당 소유 기록과 미디어를 삭제한다. 현재 구성은 보안 인증이나 완전한 익명성을 보장하지 않는다.
 
-- [Next.js PWA](https://nextjs.org/docs/app/guides/progressive-web-apps)
-- [Konsta Next.js](https://konstaui.com/react/next-js)
-- [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS)
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
-- [SQLite WAL](https://sqlite.org/wal.html)
+## 8. 검증 범위와 성능 한계
 
-최종 결과·제약·테스트 기록은 `memory-app/README.md` 및 `docs/verification.md`에 유지한다.
+현재 MVP의 자동 검사 항목은 원문 보존, 수정 이력, 중복 요청, 소유권 분리, 공급자 계약, 요청 경계, 긴 TTS 분할, 문서 생성과 동기화다. 브라우저에서는 가상 사진 업로드 → 글 답변 → 엽서 → 추가 인터뷰 → 회고록 승인·복구와 탐색·설정을 검사한다.
+
+소개 페이지는 작은 화면·키보드·다크·모션 감소, 명시적 다이어그램 지연 로딩, 실패 안내, PRD 원문·다운로드 일치를 검사한다. 과거 390/768/1440px와 200% CSS 확대 검사가 실제 iPhone 설치나 브라우저 UI 확대 검증을 대신하지는 않는다.
+
+2026-09-14 로컬 측정 조건: M1 Pro 8코어, RAM 16GB, CPU 음성 추론 4스레드. 가상의 동일 한국어 대본을 Sohee로 합성한 뒤 Whisper에 입력했다.
+
+| 회차 | 합성 오디오 길이 | TTS 서버 처리 | STT 처리 |
+|---|---|---|---|
+| 1 | 8.24초 | 41.23초 | 2.517초 |
+| 2 | 7.60초 | 42.229초 | 2.711초 |
+
+첫 전사에서 ‘봄에’를 ‘봄의’로 인식했다. 합성 대본 두 번의 결과로 p50/p95, 실제 어르신 발화 정확도, 일반 x86 성능을 보장할 수 없다. 목표 지연 1.5초/3초를 달성한 구성으로 표시하지 않는다. 실제 질문 생성은 안내 모드로 전환된 사례가 있고, 회고록 원문 구성은 Ollama 경로가 확인됐다.
+
+유료 API는 계약용 테스트와 실제 호출을 구분한다. 현재 공개 자료는 실제 유료 공급자 품질·지연 검증을 완료했다고 주장하지 않는다. 모델 다운로드 후 로컬 로드는 확인했지만 완전 오프라인 앱이라는 뜻은 아니다.
+
+## 9. 출시 기준과 후속 과제
+
+교육용 MVP의 수용 기준:
+
+- 가상 사진과 텍스트만으로 핵심 여정을 완주할 수 있다.
+- 사용자의 확인 없이 전사를 확정 저장하지 않는다.
+- 원문·수정 이력·승인 상태가 새로고침 후 유지된다.
+- 다른 게스트 기록 접근과 중복 저장을 방지한다.
+- 로컬·외부 처리와 실패 상태, 미검증 범위를 사용자에게 알린다.
+- 문서 빌드, 앱 테스트, 타입 검사, 프로덕션 빌드가 통과한다.
+
+운영 서비스로 확대하기 전에는 실제 iPhone 설치·마이크·자동재생, 다양한 어르신 한국어 발화, 다중 사용자 부하, 계정·가족 공유·복구, HTTPS·배포·백업, 유료 API의 비용·개인정보 조건을 별도로 검증해야 한다.
+
+성공 지표 후보는 첫 엽서 완주율, 전사 수정률, 저장 성공률, 오류 후 복귀율, 첫 음성 재생까지의 실제 대기 시간이다. 아직 실사용자 지표를 수집하거나 목표 달성을 입증한 단계는 아니다.
 </pre>
         </details>
       </section>

@@ -20,10 +20,7 @@ const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const SCRIPT_SOURCE = path.join(APP_ROOT, "scripts", "build-project-guide.mjs");
 
 const INPUTS = {
-  "docs/superpowers/plans/2026-09-14-memory-pwa.md": "계획 $& <script>\n",
-  "docs/verification.md": "검증 & 확인\n",
-  "docs/superpowers/specs/2026-09-15-project-landing-enhancement-design.md":
-    "향상 설계 <strong>문서</strong>\n",
+  "docs/PRD.md": "계획 $& <script>\n",
 };
 
 function makeFixture({ omitInput } = {}) {
@@ -76,16 +73,8 @@ test("CLI builds exact Markdown copies and byte-identical escaped HTML", (t) => 
 
   const publicRoot = path.join(fixture.appRoot, "public");
   assert.equal(
-    readFileSync(path.join(publicRoot, "project-plan.md"), "utf8"),
-    INPUTS["docs/superpowers/plans/2026-09-14-memory-pwa.md"],
-  );
-  assert.equal(
-    readFileSync(path.join(publicRoot, "project-verification.md"), "utf8"),
-    INPUTS["docs/verification.md"],
-  );
-  assert.equal(
-    readFileSync(path.join(publicRoot, "project-enhancement-design.md"), "utf8"),
-    INPUTS["docs/superpowers/specs/2026-09-15-project-landing-enhancement-design.md"],
+    readFileSync(path.join(publicRoot, "project-prd.md"), "utf8"),
+    INPUTS["docs/PRD.md"],
   );
 
   const htmlPath = path.join(publicRoot, "project.html");
@@ -111,7 +100,7 @@ test("--check reports stale and missing outputs without changing files", (t) => 
   assert.notEqual(stale.status, 0);
   assert.equal(readFileSync(htmlPath, "utf8"), "stale output\n");
 
-  const missingPath = path.join(fixture.appRoot, "public", "project-verification.md");
+  const missingPath = path.join(fixture.appRoot, "public", "project-prd.md");
   unlinkSync(missingPath);
   const missing = runCli(fixture, ["--check"]);
   assert.notEqual(missing.status, 0);
@@ -129,7 +118,7 @@ test("CLI rejects unknown arguments", (t) => {
 
 test("CLI reads every input before it writes any output", (t) => {
   const missingInput =
-    "docs/superpowers/specs/2026-09-15-project-landing-enhancement-design.md";
+    "docs/PRD.md";
   const fixture = makeFixture({ omitInput: missingInput });
   t.after(() => rmSync(fixture.root, { recursive: true, force: true }));
 
@@ -140,6 +129,6 @@ test("CLI reads every input before it writes any output", (t) => {
   assert.notEqual(result.status, 0);
   assert.equal(readFileSync(sentinelPath, "utf8"), "existing output\n");
   assert.throws(() =>
-    readFileSync(path.join(fixture.appRoot, "public", "project-plan.md")),
+    readFileSync(path.join(fixture.appRoot, "public", "project-prd.md")),
   );
 });

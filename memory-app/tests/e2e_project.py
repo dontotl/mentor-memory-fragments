@@ -9,9 +9,7 @@ BASE = os.environ.get('MEMORY_TEST_URL', 'http://127.0.0.1:3000')
 APP = Path(__file__).resolve().parents[1]
 ROOT = APP.parent
 DOC_SOURCES = {
-    'project-plan.md': ROOT / 'docs/superpowers/plans/2026-09-14-memory-pwa.md',
-    'project-verification.md': ROOT / 'docs/verification.md',
-    'project-enhancement-design.md': ROOT / 'docs/superpowers/specs/2026-09-15-project-landing-enhancement-design.md',
+    'project-prd.md': ROOT / 'docs/PRD.md',
 }
 with sync_playwright() as p:
     browser = p.chromium.launch()
@@ -140,19 +138,14 @@ with sync_playwright() as p:
     page.unroute('**/api/health')
     assert all(method == 'GET' and urlparse(url).netloc == urlparse(BASE).netloc for method, url in requests), requests
     assert all('/api/' not in url or url.endswith('/api/health') for _, url in requests), requests
-    page.get_by_text('계획서 전체 내용 펼치기').click()
+    page.get_by_text('PRD 전체 내용 펼치기').click()
     expect(page.locator('#plan-source')).to_contain_text('공통 API 계약')
-    assert page.locator('#plan-source').text_content() == DOC_SOURCES['project-plan.md'].read_text()
+    assert page.locator('#plan-source').text_content() == DOC_SOURCES['project-prd.md'].read_text()
     with page.expect_download() as info:
-        page.get_by_role('link', name='계획서 MD 내려받기').click()
-    assert info.value.suggested_filename == 'project-plan.md'
-    assert Path(info.value.path()).read_bytes() == DOC_SOURCES['project-plan.md'].read_bytes()
-    for doc in ['project-verification.md', 'project-enhancement-design.md']:
-        with page.expect_download() as info:
-            page.locator(f'a[download][href="{doc}"]').click()
-        assert info.value.suggested_filename == doc
-        assert Path(info.value.path()).read_bytes() == DOC_SOURCES[doc].read_bytes()
-    page.get_by_text('계획서 전체 내용 펼치기').click()
+        page.get_by_role('link', name='PRD MD 내려받기').click()
+    assert info.value.suggested_filename == 'project-prd.md'
+    assert Path(info.value.path()).read_bytes() == DOC_SOURCES['project-prd.md'].read_bytes()
+    page.get_by_text('PRD 전체 내용 펼치기').click()
     for width in [1440, 768, 390, 720]:
         page.set_viewport_size({'width': width, 'height': 1000})
         page.evaluate('scrollTo(0,0)')
@@ -188,7 +181,7 @@ with sync_playwright() as p:
         assert img.evaluate('(i) => i.complete && i.naturalWidth > 0')
     page.get_by_role('link', name='텍스트 데모 시작하기').click()
     expect(page.get_by_role('heading', name='한 장의 엽서가 되기까지')).to_be_visible()
-    for route in ['/project-plan.md','/project-verification.md','/project-enhancement-design.md','/architecture.html','/interview-sequence.html']:
+    for route in ['/project-prd.md','/architecture.html','/interview-sequence.html']:
         response = page.request.get(BASE + route)
         assert response.ok, route
     page.goto((APP/'public/project.html').as_uri())
@@ -224,5 +217,5 @@ with sync_playwright() as p:
         )
     unexpected = [error for error in console_errors if not expected_console(error)]
     assert not unexpected, unexpected
-    print('PASS: anchors, 3 MD downloads, HTTP/file/no-JS, lazy/failed viewers, health ready/failure/timeout/timestamps, mobile keyboard, 390/768/1440/720 reflow, dark/reduced motion, images, same-origin GET-only reading/status; pageerrors=0')
+    print('PASS: anchors, PRD download, HTTP/file/no-JS, lazy/failed viewers, health ready/failure/timeout/timestamps, mobile keyboard, 390/768/1440/720 reflow, dark/reduced motion, images, same-origin GET-only reading/status; pageerrors=0')
     browser.close()

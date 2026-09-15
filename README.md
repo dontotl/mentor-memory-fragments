@@ -49,11 +49,7 @@ sh scripts/setup-speech.sh
 
 ## 문서와 검증
 
-- [MVP 구현 계획](docs/superpowers/plans/2026-09-14-memory-pwa.md)
-- [랜딩 개선 설계](docs/superpowers/specs/2026-09-15-project-landing-enhancement-design.md)
-- [기능·음성 검증 기록](docs/verification.md)
-- [랜딩·Archify 검증 기록](docs/project-guide-verification.md)
-- [공개 저장소 정리 범위](docs/PUBLICATION.md)
+- [제품 요구사항 정의서 (PRD)](docs/PRD.md): 목적·사용자 여정·요구사항·구성·데이터 처리·검증 범위·후속 과제
 - [보안·데이터 주의사항](SECURITY.md)
 
 ```sh
@@ -68,7 +64,7 @@ npm start
 
 브라우저 E2E는 Python Playwright와 Chromium을 별도 설치하고 앱 서버 실행 후 `python tests/e2e_project.py`, `python tests/e2e_demo.py`로 실행합니다. 합성 샘플 검사이며 실제 어르신 발화나 iPhone 마이크 검증을 대신하지 않습니다.
 
-소개 페이지는 `memory-app/guide/project.template.html`이 원본입니다. `npm run guide:build`가 지정된 MD와 공개 HTML을 동기화하며 일반 빌드에도 포함됩니다. Archify 생성 HTML은 후편집하지 않습니다. 외부 폰트 연결 차단은 Next.js의 HTTP CSP에 의존하므로 다이어그램은 로컬 HTTP 소개 링크에서 여세요.
+소개 페이지는 `memory-app/guide/project.template.html`이 원본입니다. `npm run guide:build`가 `docs/PRD.md`를 공개 다운로드와 HTML 전문에 동기화하며 일반 빌드에도 포함됩니다. Archify 생성 HTML은 후편집하지 않습니다. 외부 폰트 연결 차단은 Next.js의 HTTP CSP에 의존하므로 다이어그램은 로컬 HTTP 소개 링크에서 여세요. 내부 작업 지시·설계 과정·도구별 검증 산출물은 공개 문서에 포함하지 않습니다.
 
 ## 공개 범위
 
