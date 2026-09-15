@@ -1,0 +1,22 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+>
+  <rect width="512" height="512" rx="112" fill="#1b5e20" />
+  <rect x="112" y="100" width="288" height="312" rx="20" fill="#f7f5f0" />
+  <rect x="138" y="126" width="236" height="184" rx="8" fill="#c2d3b3" />
+  <text
+    x="256"
+    y="270"
+    text-anchor="middle"
+    font-family="sans-serif"
+    font-size="120"
+    fill="#1b5e20"
+  >
+    기
+  </text>
+  <rect x="156" y="342" width="200" height="12" rx="6" fill="#1b5e20" />
+  <rect x="196" y="366" width="120" height="8" rx="4" fill="#839a7b" />
+</svg>

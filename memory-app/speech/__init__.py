@@ -1,0 +1,1 @@
+"""Local Korean speech adapters."""

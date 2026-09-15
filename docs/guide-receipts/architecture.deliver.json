@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "deliver",
+  "type": "architecture",
+  "input": "docs/memory-architecture.json",
+  "output": "memory-app/public/architecture.html",
+  "specification": {
+    "sha256": "1801f7d8d9322d5cc8f2ff784765cb0a36fc81e011800c5dd607349099d81e26",
+    "bytes": 1704
+  },
+  "artifact": {
+    "sha256": "9e55404aa28fe4faabbd67af6e107804398dc5fef87b6947892bb310fa7e02f4",
+    "bytes": 706519
+  },
+  "validation": {
+    "checksPassed": 9,
+    "checkCount": 9,
+    "compositionProfile": "showcase",
+    "compositionStatus": "pass",
+    "errors": 0,
+    "warnings": 0
+  }
+}

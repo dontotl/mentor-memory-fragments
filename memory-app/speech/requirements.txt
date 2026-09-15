@@ -1,0 +1,10 @@
+fastapi==0.141.1
+uvicorn==0.53.0
+python-multipart==0.0.32
+faster-whisper==1.2.1
+qwen-tts==0.1.1
+torch==2.8.0
+torchaudio==2.8.0
+soundfile==0.13.1
+httpx==0.28.1
+pytest==9.1.1

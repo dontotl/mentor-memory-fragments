@@ -1,0 +1,33 @@
+# Local secrets and runtime data
+**/.env
+**/.env.*
+!**/.env.example
+**/data/
+**/models/
+**/ssh_keys/
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+**/.oci/
+**/.ssh/
+
+# Dependencies, build and local diagnostics
+**/node_modules/
+**/.next/
+**/out/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/test-results/
+**/playwright-report/
+*.pyc
+*.tsbuildinfo
+*.log
+.DS_Store
+:memory:.ses
